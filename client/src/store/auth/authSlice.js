@@ -1,81 +1,70 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const VITE_API = import.meta.env.VITE_API;
+// ✅ Remove any trailing slashes from the API base URL
+const BASE_URL = import.meta.env.VITE_API?.replace(/\/+$/, '');
 
-// Return user if loggedin
+console.log("Backend API URL:", BASE_URL); // For debugging (optional)
+
+// ✅ Check if user is logged in
 export const checkAuth = createAsyncThunk('auth/checkAuth', async (_, { rejectWithValue }) => {
     try {
-        const response = await axios.get(`${VITE_API}/user`, {
-            withCredentials: true,
-        });
+        const response = await axios.get(`${BASE_URL}/user`, { withCredentials: true });
         return response.data;
     } catch (error) {
         return rejectWithValue("Not authenticated");
     }
 });
 
-// login 
+// ✅ Login
 export const login = createAsyncThunk('auth/login', async ({ email, password }, { rejectWithValue }) => {
     try {
-        await axios.post(`${VITE_API}/auth/login`, { email, password }, {
-            withCredentials: true,
-        });
+        await axios.post(`${BASE_URL}/auth/login`, { email, password }, { withCredentials: true });
 
-        const response = await axios.get(`${VITE_API}/user`, {
-            withCredentials: true,
-        });
-
+        const response = await axios.get(`${BASE_URL}/user`, { withCredentials: true });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data?.error || "Login failed");
     }
 });
 
-// signup
+// ✅ Signup
 export const signup = createAsyncThunk('auth/signup', async ({ name, email, password }, { rejectWithValue }) => {
     try {
-        await axios.post(`${VITE_API}/auth/signup`, { name, email, password }, {
-            withCredentials: true,
-        });
+        await axios.post(`${BASE_URL}/auth/signup`, { name, email, password }, { withCredentials: true });
 
-        const response = await axios.get(`${VITE_API}/user`, {
-            withCredentials: true,
-        });
-
+        const response = await axios.get(`${BASE_URL}/user`, { withCredentials: true });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data?.error || "Signup failed");
     }
 });
 
-// logout
+// ✅ Logout
 export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
     try {
-        await axios.post(`${VITE_API}/auth/logout`, {}, {
-            withCredentials: true,
-        });
+        await axios.post(`${BASE_URL}/auth/logout`, {}, { withCredentials: true });
         return null;
     } catch (error) {
         return rejectWithValue("Logout failed");
     }
 });
 
-// initial auth state
+// ✅ Initial auth state
 const initialState = {
     user: null,
     loading: true,
     error: null,
 };
 
-// auth slice
+// ✅ Auth slice
 const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // checkAuth
+            // Check Auth
             .addCase(checkAuth.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -90,7 +79,7 @@ const authSlice = createSlice({
                 state.loading = false;
             })
 
-            // login
+            // Login
             .addCase(login.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -105,7 +94,7 @@ const authSlice = createSlice({
                 state.loading = false;
             })
 
-            // signup
+            // Signup
             .addCase(signup.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -120,7 +109,7 @@ const authSlice = createSlice({
                 state.loading = false;
             })
 
-            // logout
+            // Logout
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;
                 state.loading = false;
