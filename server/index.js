@@ -10,7 +10,6 @@ import userAuthRouter from './routes/userAuth.js';
 import userRouter from './routes/user.js';
 import contactRouter from "./routes/contact.js";
 import adminRouter from './routes/admin.js';
-
 const port = process.env.PORT || 4000;
 
 connectDB();

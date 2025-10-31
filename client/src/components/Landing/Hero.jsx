@@ -15,6 +15,7 @@ export const Hero = () => {
             treasures to a global audience. Join thousands of buyers and sellers
             in our trusted marketplace.
           </p>
+          <p className=" mb-6">Devloped by <span className=" text-blue-600"><b>Asma Akbar</b></span></p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
               <button className="bg-indigo-900 text-white px-8 py-3 rounded-md hover:bg-indigo-800 transition-colors font-medium text-lg">
