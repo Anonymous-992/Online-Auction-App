@@ -28,8 +28,7 @@ app.use(express.json());
 
 // ✅ Define allowed origins for both local and production
 const allowedOrigins = [
-  "https://online-auction-app-uajk.onrender.com",
-  "http://localhost:5173
+  "https://online-auction-app-uajk.onrender.com"
 ];
 
 // ✅ Configure CORS safely
