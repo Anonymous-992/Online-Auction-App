@@ -16,6 +16,7 @@ export const handleUserLogin = async (req, res) => {
 
   try {
     await connectDB();
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "User not found" });
 
@@ -23,19 +24,21 @@ export const handleUserLogin = async (req, res) => {
     if (!passwordValid)
       return res.status(401).json({ error: "Invalid credentials" });
 
+    // ✅ Generate JWT token
     const token = generateToken(user._id, user.role);
 
+    // ✅ Correct cookie settings for cross-site requests on Render
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: true,       // Always true in production (HTTPS only)
+      sameSite: "none",   // Must be "none" for cross-domain cookies
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     const ip = getClientIp(req);
     const userAgent = req.headers["user-agent"];
 
-    // Safe geo lookup for Render
+    // ✅ Safe geo lookup (fallback if API fails)
     let location = {
       country: "Unknown",
       region: "Unknown",
@@ -50,6 +53,7 @@ export const handleUserLogin = async (req, res) => {
       console.warn("Geo lookup failed (login):", err.message);
     }
 
+    // ✅ Update last login details
     await User.findByIdAndUpdate(user._id, {
       lastLogin: new Date(),
       location,
@@ -57,6 +61,7 @@ export const handleUserLogin = async (req, res) => {
       userAgent,
     });
 
+    // ✅ Save login history
     const login = new Login({
       userId: user._id,
       ipAddress: ip,
@@ -91,7 +96,7 @@ export const handleUserSignup = async (req, res) => {
     const ip = getClientIp(req);
     const userAgent = req.headers["user-agent"];
 
-    // Safe geo lookup with fallback
+    // ✅ Safe geo lookup (fallback if API fails)
     let location = {
       country: "Unknown",
       region: "Unknown",
@@ -109,8 +114,10 @@ export const handleUserSignup = async (req, res) => {
     console.log("Resolved IP:", ip);
     console.log("Location details:", location);
 
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ Create new user
     const newUser = new User({
       name,
       email,
@@ -125,6 +132,7 @@ export const handleUserSignup = async (req, res) => {
 
     await newUser.save();
 
+    // ✅ Record initial login
     const login = new Login({
       userId: newUser._id,
       ipAddress: ip,
@@ -134,12 +142,13 @@ export const handleUserSignup = async (req, res) => {
     });
     await login.save();
 
+    // ✅ Generate JWT and set cookie
     const token = generateToken(newUser._id, newUser.role);
 
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,       // Always true for Render HTTPS
+      sameSite: "none",   // Required for cross-domain cookies
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -154,8 +163,8 @@ export const handleUserSignup = async (req, res) => {
 export const handleUserLogout = async (req, res) => {
   res.clearCookie("auth_token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
   });
   return res.status(200).json({ message: "Logged out successfully" });
 };
